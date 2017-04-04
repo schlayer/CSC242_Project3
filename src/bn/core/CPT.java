@@ -10,7 +10,7 @@ package bn.core;
 import java.io.*;
 import java.util.*;
 
-/** hi
+/** watup
  * A CPT is a conditional probability table, as stored in a Node of a
  * BayesianNetwork. A CPT enumerates all possible combinations of
  * values for its <q>given</q> (conditioning) and <q>query</q>
