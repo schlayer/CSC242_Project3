@@ -340,6 +340,7 @@ public class BayesianNetwork {
 	 * Test driver for BayesianNetwork.
 	 */
 	public static void main(String[] argv) {
+		
 		RandomVariable A = new RandomVariable("A");
 		A.setDomain(new Domain("a1", "a2", "a3"));
 		RandomVariable B = new RandomVariable("B");
