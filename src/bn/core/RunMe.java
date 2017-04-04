@@ -1,14 +1,11 @@
 package bn.core;
 
+import java.awt.List;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
-
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.xml.sax.SAXException;
-
 import bn.parser.XMLBIFParser;
 
 public class RunMe {
@@ -61,20 +58,48 @@ public class RunMe {
 
 		// Parameters
 		System.out.println("\n\nParameters:");
-		for(String P: parameters) {
+		
+		String[] evidenceVarNames = new String[parameters.length/2]; 	// If 5 parameters, 2 are evidence,
+		Object[] evidenceValues = new Object[parameters.length/2]; 	// and 2 are values
+		
+		int evIndex = 0;
+		for(int i = 0; i < parameters.length; i++) {
+			String P = parameters[i];
 			System.out.print(P + " ");
+			
+			if (i == 0) continue; 	// Skip ahead after query
+			
+			if (i % 2 == 1) { 				// Every other is a variable name
+				//System.out.print("<< ");
+				evidenceVarNames[evIndex] = P;
+				evIndex ++;
+			} else {						// The next item is always the value object
+				evidenceValues[evIndex-1] = P;
+			}
 		}
+		
+		System.out.println("\n\nEvidence: ");
+		for (String e: evidenceVarNames) System.out.print(e + "\t"); System.out.println("");
+		for (Object e: evidenceValues) System.out.print(e + "\t");
 
-		String queryVar = parameters[0];
-		System.out.println("\nPrinting distribution for: " + queryVar);
+		String queryVarName = parameters[0];
+		System.out.println("\n\nPrinting distribution for: " + queryVarName);
 		
 		/* Time to actually do things! */
 		try {
-			System.out.println("\nAttempting to read file: " + filename);
+			System.out.println("\nAttempting to read file: " + filename + " at location");
 			String newpath = "src/bn/examples/" + filename; System.out.println(newpath); // Correct the path to /examples/
 			XMLBIFParser parser = new XMLBIFParser();
 			
 			BayesianNetwork BN = parser.readNetworkFromFile(newpath);
+			RandomVariable query = BN.getVariableByName(queryVarName);
+			
+			Assignment A = new Assignment();
+			RandomVariable[] evidence = new RandomVariable[evidenceValues.length];
+			for (int i = 0; i < evidence.length; i++) {		// Get RandomVariables for each evidence value
+				evidence[i] = BN.getVariableByName(evidenceVarNames[i]);
+				A.set(evidence[i], evidenceValues[i]);		// Add the evidence var/val to the set of assignments 
+			}
 			
 			BN.print(System.out);
 			
