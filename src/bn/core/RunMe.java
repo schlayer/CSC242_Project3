@@ -1,6 +1,8 @@
 package bn.core;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -14,8 +16,6 @@ public class RunMe {
 	 * This is the main class which is intended to be used to test the project. 
 	 * @param args
 	 */
-
-	static XMLBIFParser parser;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -69,13 +69,14 @@ public class RunMe {
 		System.out.println("\nPrinting distribution for: " + queryVar);
 		
 		/* Time to actually do things! */
-		
-		BayesianNetwork BN;
 		try {
-			System.out.println("\n Attempting to read file: " + filename);
-			String newpath = "../examples/" + filename; System.out.println(newpath);
-			BN = parser.readNetworkFromFile(newpath);
+			System.out.println("\nAttempting to read file: " + filename);
+			String newpath = "src/bn/examples/" + filename; System.out.println(newpath); // Correct the path to /examples/
+			XMLBIFParser parser = new XMLBIFParser();
 			
+			BayesianNetwork BN = parser.readNetworkFromFile(newpath);
+			
+			BN.print(System.out);
 			
 			
 		} catch (IOException e) {
