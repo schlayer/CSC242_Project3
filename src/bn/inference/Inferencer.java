@@ -19,7 +19,7 @@ public interface Inferencer {
 	 * this method using some reasonable default value to satisfy the interface.
 	 * 
 	 * Or don't implement this interface at all. It's really here to guide you
-	 * as to what an inferencer should do (namely, compute a posterior distriubution.
+	 * as to what an inferencer should do (namely, compute a posterior distribution).
 	 */
 	public static Distribution ask(BayesianNetwork bn, RandomVariable X, Assignment e){
 		Distribution d = new Distribution();
