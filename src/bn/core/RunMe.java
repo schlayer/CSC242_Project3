@@ -14,6 +14,8 @@ public class RunMe {
 	 * @param args
 	 */
 	
+	// DELETE ME https://github.com/aimacode/aima-java/tree/AIMA3e/aima-core/src/main/java/aima/core/probability/bayes
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		System.out.println("Here be arguments:\n");
