@@ -1,6 +1,7 @@
 package bn.inference;
 
 import java.util.List;
+import java.util.Map;
 
 import bn.core.Assignment;
 import bn.core.BayesianNetwork;
@@ -8,103 +9,59 @@ import bn.core.Distribution;
 import bn.core.RandomVariable;
 
 public class ExactInferencer {
-
-	/**
-	function ENUMERATION-ASK(X, e, bn) returns a distribution over X
-		inputs: X, the query variable
-				e, observed values for variables E
-				bn, a Bayes net with variables {X} u  E u  Y // Y = hidden variables 
-		Q(X)<a distribution over X, initially empty
-		for each value xi of X do
-			Q(xi)<ENUMERATE-ALL(bn.VARS, exi )
-				where exi is e extended with X = xi
-		return NORMALIZE(Q(X))
-	 */ 
 	
+	// This is used to determine if a FULL vars list or the REST of the list
+	// is used in exactEnumerateAll. This changes the code so bn isn't
+	// needed as an instance variable for this class, and bn is an argument
+	// for enumeration instead of the vars list. 
+	
+	private final static int REST = 1357;
+	private final static int FULL = 0;
+
+
 	public static Distribution exactEnumerationAsk(BayesianNetwork bn, RandomVariable X, Assignment a) {
-		
-		//copy
-		// Q(X) <- a distribution over X, initially empty
-		// final ProbabilityTable Q = new ProbabilityTable(X);
-		// final ObservedEvidence e = new ObservedEvidence(X, observedEvidence, bn);
-		
-		ProbabilityTable.Iterator di = new ProbabilityTable.Iterator() {
-			int cnt = 0;
+		Distribution Q = new Distribution(X);
 
-			/**
-			 * <pre>
-			 * Q(x<sub>i</sub>) <- ENUMERATE-ALL(bn.VARS, e<sub>x<sub>i</sub></sub>)
-			 *   where e<sub>x<sub>i</sub></sub> is e extended with X = x<sub>i</sub>
-			 * </pre>
-			 */
-			public void iterate(Map<RandomVariable, Object> possibleWorld, double probability) {
-				for (int i = 0; i < X.length; i++) {
-					e.setExtendedValue(X[i], possibleWorld.get(X[i]));
-				}
-				Q.setValue(cnt,
-						enumerateAll(bn.getVariableList(), e));
-				cnt++;
-			}
-		};
-		Q.iterateOverTable(di);
+		for (Object x: X.getDomain()) { // For each x (an Object in the domain of X):
+			a.set(X, x); // a is the assignment where X = x
+			Q.put(x, exactEnumerateAll(bn, a, FULL)); // Add to the distribution
+		}
 
-		// return NORMALIZE(Q(X))
-		return Q.normalize();
+		Q.normalize();
+		return Q;
 
-
-		//copy
-
-
-
-		//return null;
-		
 	}
-	
-	/*
-	function ENUMERATE-ALL(vars, e) returns a real number
-		if EMPTY?(vars) then return 1.0
-		Y <FIRST(vars)
-		if Y has value y in e
-			then return P(y | parents(Y )) × ENUMERATE-ALL(REST(vars), e)
-			else return sum y P(y | parents(Y )) × ENUMERATE-ALL(REST(vars), ey)
-				where ey is e extended with Y = y
-	 */
 
 	
-	public static double exactEnumerateAll(List<RandomVariable> vars, Assignment a) {
-		
+
+	public static double exactEnumerateAll(BayesianNetwork bn, Assignment a, int listType) {
+
+		List <RandomVariable> vars = bn.getVariableList();
+		if (listType == REST) { vars = vars.subList(1, vars.size()); }
 		// copy
-		// if EMPTY?(vars) then return 1.0
-		if (0 == vars.size()) {
-			return 1;
+
+		if (vars.size() == 0) { // If vars is empty, return 1.0
+			return 1.0;
 		}
-		// Y <- FIRST(vars)
-		RandomVariable Y = vars.get(0);
-		// if Y has value y in e
-		if (a.containsValue(Y)) {
-			// then return P(y | parents(Y)) * ENUMERATE-ALL(REST(vars), e)
-			return a.posteriorForParents(Y) * exactEnumerateAll(vars.subList(1, vars.size()), a);
+
+		RandomVariable Y = vars.get(0); // First hidden variable
+
+		Object yVal = a.get(Y);
+		System.out.println(yVal.toString());
+		if (yVal != null) { // if Y has some value yVal in the assignment:
+			return bn.getProb(Y, a) * exactEnumerateAll(bn, a, REST); // return that probability
 		}
-		/**
-		 * <pre>
-		 *  else return &sum;<sub>y</sub> P(y | parents(Y)) * ENUMERATE-ALL(REST(vars), e<sub>y</sub>)
-		 *       where e<sub>y</sub> is e extended with Y = y
-		 * </pre>
-		 */
+		// Else... sum probabilities for all the possibilities for Y...
 		double sum = 0;
-		for (Object y: Y.getDomain()) {
-			a.setExtendedValue(Y, y);
-			sum += a.posteriorForParents(Y) * enumerateAll(vars.subList(1, vars.size()), a);
+		for (Object y: Y.getDomain()) { // For all values y in the domain of Y
+			a.set(Y, y); // set Y = y in the assignment
+			sum += bn.getProb(Y, a) * exactEnumerateAll(bn, a, REST); // add probability to sum
 		}
 
-		return sum;
+		return sum; // ... then return that sum.
 
-
-		// copy
-		
-		return 0;
 	}
-	
+
 	
 	
 }
