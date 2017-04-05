@@ -1,5 +1,10 @@
 package bn.inference;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import bn.core.Assignment;
 import bn.core.BayesianNetwork;
 import bn.core.Distribution;
@@ -7,6 +12,10 @@ import bn.core.RandomVariable;
 
 public class LikelihoodInferencer {
 	
+	private Random randomizer = new Random();
+	
+	public LikelihoodInferencer() {}
+
 	/**
 	function LIKELIHOOD-WEIGHTING(X, e, bn,N) returns an estimate of P(X|e)
 		inputs: X, the query variable
@@ -21,8 +30,22 @@ public class LikelihoodInferencer {
 
 	 */ 
 	
-	public static Distribution likelihoodWeighting(BayesianNetwork bn, RandomVariable X, Assignment a) {
-		return null;
+	
+	public static Distribution likelihoodWeighting(BayesianNetwork bn, 
+			RandomVariable X, Assignment a, int numSamples) {
+		
+		Distribution dist = new Distribution(X);
+		weight W = new weight(X);
+		
+		for (int n = 0; n < numSamples; n++) {
+			// event, weight = Weighted Sample(bn,a)
+			
+			
+		}
+		
+	
+		dist.normalize();
+		return dist;
 		
 	}
 	
@@ -37,8 +60,13 @@ public class LikelihoodInferencer {
 	 */
 
 	
-	public static double weightedSample(RandomVariable X, Assignment a) {
-		
+	public static double weightedSample(BayesianNetwork bn, Assignment a, RandomVariable X) {
+		Assignment e = a.copy();
+		List<RandomVariable> Y = bn.getVariableList();
+		for (Object x: X.getDomain()) { // For all values y in the domain of Y
+			System.out.print("x = " + x + "  ");
+			e.set(X, x); // set Y = y in the assignment
+		}
 		return 0;
 	}
 	
@@ -48,5 +76,5 @@ public class LikelihoodInferencer {
 	distribution given the values already sampled for the variable’s parents, while a weight is
 	accumulated based on the likelihood for each evidence variable.
 	 */
-	
+
 }

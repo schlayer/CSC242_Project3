@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
-import bn.parser.XMLBIFParser;
+
+import bn.inference.*;
+import bn.parser.*;
 
 public class RunMe {
 	/**
@@ -14,7 +16,6 @@ public class RunMe {
 	 * @param args
 	 */
 	
-	// DELETE ME https://github.com/aimacode/aima-java/tree/AIMA3e/aima-core/src/main/java/aima/core/probability/bayes
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -23,7 +24,7 @@ public class RunMe {
 		System.out.println("\n ^ args\n");
 
 		String lang = args[0];			// Language
-		String inferencer =  args[1];	// Type of inferencer to use
+		String inferencer = args[1];	// Type of inferencer to use
 		String[] parameters;
 		String filename = "";
 
@@ -103,10 +104,24 @@ public class RunMe {
 				A.set(evidence[i], evidenceValues[i]);		// Add the evidence var/val to the set of assignments 
 			}
 			
+			
 			BN.print(System.out);
 			
+
+			System.out.println("\n\nStarting Inferencing... \n");
 			
 			
+			if (inferencer.equals("MyBNInferencer")) {
+				ExactInferencer inf = new ExactInferencer(BN);
+				Distribution dist = inf.exactEnumerationAsk(BN, query, A);
+				//dist.toString();
+				System.out.println("\n\nProbabilities:" + dist.toString());
+			}
+			
+		
+			System.out.println("\n\nAFTER INFERENCING\n\n");
+			
+			//BN.print(System.out);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
