@@ -66,13 +66,12 @@ public class GibbsInferencer {
 																// values as the sample probability
 			//System.out.print(" Sample: " + samples[index]);		
 		}
-
+		
 		//printList(distValues); 	// debug
 		//printList(samples);		// debug
 		//System.out.println("");
 
-		// Now that we have a list of sample values [0.0, 0.1, 0.3, 0.45, 0.89, 1.0]
-		// We can choose an index (i) pseudorandomly with weighting determined by the size of gaps
+		// Now we can choose an index (i) pseudorandomly with weighting determined by the size of gaps
 		// in between each value in sample[]
 		Object w = null;
 		// Find where Random # falls in sample[]
@@ -87,10 +86,9 @@ public class GibbsInferencer {
 		if (w == null) System.out.println("whoops");
 		
 		return w;
-
 	}
 
-	// copy
+	
 	public Distribution gibbsAsk(RandomVariable X, Assignment a, BayesianNetwork bn, int numSamples) {
 		
 		Distribution dist = new Distribution(X);
@@ -100,19 +98,19 @@ public class GibbsInferencer {
 		List <RandomVariable> V = bn.getVariableListTopologicallySorted();
 		List <RandomVariable> Z = new ArrayList<RandomVariable> (V);
 		
-		for (RandomVariable R: a.keySet()) {			// Remove all evidence vars from Z
-			Z.remove(R);} 								// Now Z is the list of non-evidence variables
+		for (RandomVariable E: a.keySet()) {			// Remove all evidence vars from Z
+			Z.remove(E);} 								// Now Z is the list of non-evidence variables
 		Assignment state = a.copy();					// state = current state
 		
 		for (RandomVariable zi: Z) {
-			Domain zDom = zi.getDomain();				// vDomain
-			Distribution zDist = new Distribution(zi);	// vDistribution
+			Domain zDom = zi.getDomain();				// zDomain
+			Distribution zDist = new Distribution(zi);	// zDistribution
 
 			for (Object zVal: zDom) {					// For each value in the domain of Yv:
 				Assignment k = state.copy();			// Instantiate 'state'
 				k.put(zi, zVal);							// Add the value
 
-				zDist.put(zVal, bn.getProb(zi, k));			// Update the distribution
+				zDist.put(zVal, bn.getProb(zi, k));			// Update the zDistribution
 			}
 
 			Object chosen = getRandSample(zDist, zi);
@@ -124,9 +122,10 @@ public class GibbsInferencer {
 			for (RandomVariable zi: Z) {
 				state.put(zi, gibbsSample(zi, state, bn));		// Insert a MBsample into the state
 				
-				System.out.println(dist.toString());
-				
-				dist.put(state.get(zi), (dist.get(state.get(zi)) + 1.0));	// Increment the distribution	
+				//System.out.println(dist.toString());
+				Object val = state.get(zi);
+				if (dist.get(val) == null) dist.put(val, 0);
+				dist.put(val, (dist.get(val) + 1.0));	// Increment the distribution	
 			}
 		}
 		
@@ -147,6 +146,7 @@ public class GibbsInferencer {
 			Set <RandomVariable> ziChildren = bn.getChildren(zi);
 			
 			for (RandomVariable child: ziChildren) {
+				//System.out.print("_");
 				probability *= bn.getProb(child, k);	// Big PI of children * parent prob
 			}
 			
@@ -159,9 +159,6 @@ public class GibbsInferencer {
 
 		return chosen;
 	}
-
-
-	// copy
 
 
 }
