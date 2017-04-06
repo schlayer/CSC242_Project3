@@ -1,2 +1,3 @@
 bn/inference/ExactInferencer
-bn/inference/RejectionInferencer
+bn/inference/LikelihoodInferencer
+bn/inference/GibbsInferencer

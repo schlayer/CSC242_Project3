@@ -1,7 +1,6 @@
 package bn.inference;
 
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 import bn.core.Assignment;
@@ -42,16 +41,15 @@ public class ExactInferencer {
 		RandomVariable Y = vars.get(0); // First hidden variable
 		List <RandomVariable> rest = vars.subList(1, vars.size()); // Remaining vars
 		
-		//Object yVal = a.get(Y);
-		//System.out.println(yVal.toString());
+		
 		if (a.containsKey(Y)) { // if Y has some value yVal in the assignment:
-			System.out.print("no Y  ");
+			//System.out.print("no Y  ");
 			return BN.getProb(Y, a) * exactEnumerateAll(rest, a); // return that probability
 		}
 		// Else... sum probabilities for all the possibilities for Y...
 		double sum = 0;
 		for (Object y: Y.getDomain()) { // For all values y in the domain of Y
-			System.out.print("y = " + y + "  ");
+			//System.out.print("y = " + y + "  ");
 			Assignment e = a.copy();
 			e.set(Y, y); // set Y = y in the assignment
 			

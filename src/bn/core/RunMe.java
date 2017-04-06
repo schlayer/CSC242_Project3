@@ -1,6 +1,7 @@
 package bn.core;
 
 import java.awt.List;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +32,8 @@ public class RunMe {
 		// Parse the arguments
 		if (!lang.equals("java")){ System.out.println("This is Java code!"); }
 
+		int samples = 0;
+		
 		switch (inferencer){
 		case "MyBNInferencer":
 			System.out.println("Inferencer chosen!");
@@ -40,7 +43,7 @@ public class RunMe {
 			break;
 		case "MyBNApproxInferencer":
 			System.out.println("Approximate chosen!");
-			int samples = Integer.parseInt(args[2]); // Grab samples, not filename
+			samples = Integer.parseInt(args[2]); // Grab samples, not filename
 
 			System.out.println("Number of samples: " + samples + "."); 
 			filename = args[3];		// Name of XML or BIF file for probabilities
@@ -53,10 +56,16 @@ public class RunMe {
 			return;
 
 		}
-
+		
+		
+		String type = "XML";
 		// Files
-		if (filename.toLowerCase().endsWith(".bif")) { System.out.println("BIF file."); }
-		else if (filename.toLowerCase().endsWith(".xml")) { System.out.println("XML file."); }
+		if (filename.toLowerCase().endsWith(".bif")) { 
+			System.out.println("BIF file."); type = "BIF";
+		}
+		else if (filename.toLowerCase().endsWith(".xml")) { 
+			System.out.println("XML file."); type = "XML";
+		}
 		else { System.out.println("ERROR!"); return;}
 
 		// Parameters
@@ -92,9 +101,20 @@ public class RunMe {
 		try {
 			System.out.println("\nAttempting to read file: " + filename + " at location");
 			String newpath = "src/bn/examples/" + filename; System.out.println(newpath); // Correct the path to /examples/
-			XMLBIFParser parser = new XMLBIFParser();
 			
-			BayesianNetwork BN = parser.readNetworkFromFile(newpath);
+			BayesianNetwork BN = new BayesianNetwork();
+			
+			if (type.equals("BIF")) {
+				BIFParser parser = new BIFParser(new FileInputStream(newpath));
+
+				BN = parser.parseNetwork();
+			}
+			else {
+				XMLBIFParser parser = new XMLBIFParser();
+				
+				BN = parser.readNetworkFromFile(newpath);
+			}
+			
 			RandomVariable query = BN.getVariableByName(queryVarName);
 			
 			Assignment A = new Assignment();
@@ -105,7 +125,7 @@ public class RunMe {
 			}
 			
 			
-			BN.print(System.out);
+			///BN.print(System.out);
 			
 
 			System.out.println("\n\nStarting Inferencing... \n");
@@ -113,15 +133,29 @@ public class RunMe {
 			
 			if (inferencer.equals("MyBNInferencer")) {
 				ExactInferencer inf = new ExactInferencer(BN);
+				
+				final long startTime = System.currentTimeMillis();
 				Distribution dist = inf.exactEnumerationAsk(BN, query, A);
-				//dist.toString();
+				final long endTime = System.currentTimeMillis();
+				
+				System.out.println("Completed in " + (endTime-startTime) + " ms.");
 				System.out.println("\n\nProbabilities:" + dist.toString());
 			}
 			
-		
-			System.out.println("\n\nAFTER INFERENCING\n\n");
-			
-			//BN.print(System.out);
+			if (inferencer.equals("MyBNApproxInferencer")) {
+				if (samples < 1000) System.out.println("WARNING: Insufficient sample count! May be unreliable.");
+				
+				LikelihoodInferencer inf = new LikelihoodInferencer();
+				
+				final long startTime = System.currentTimeMillis();
+				Distribution dist = inf.likelihoodWeighting(BN, query, A, samples);
+				final long endTime = System.currentTimeMillis();
+				
+				System.out.println("Completed " + samples + " samples in " + (endTime-startTime) + " ms.");
+				System.out.format("Average %.3f samples/ms. \n", (double)(samples/(endTime-startTime+0.0)));
+				
+				System.out.println("\n\nProbabilities:" + dist.toString());
+			}
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

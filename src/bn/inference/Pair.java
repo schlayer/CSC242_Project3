@@ -5,6 +5,12 @@ import bn.core.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Stores an event and associated weight
+ * @author Seth Schaffer
+ *
+ */
+
 public class Pair {
 
 	protected Assignment event;
@@ -17,6 +23,5 @@ public class Pair {
 		this.weight = weight;
 	}
 
-	
-	
+
 }
