@@ -62,7 +62,8 @@ public class GibbsInferencer {
 		int index = 0;
 		for (Object y: yDom) {	// For each object in the domain of Y: 
 			distValues[index] = dist.get(y); index ++;			// Store the next distribution value
-			samples[index] = sumList(distValues);				// Store the sum of dist. values as the sample probability
+			samples[index] = sumList(distValues);				// Store the sum of dist. 
+																// values as the sample probability
 			//System.out.print(" Sample: " + samples[index]);		
 		}
 
@@ -83,7 +84,8 @@ public class GibbsInferencer {
 				}
 			}
 		}
-
+		if (w == null) System.out.println("whoops");
+		
 		return w;
 
 	}
@@ -93,8 +95,6 @@ public class GibbsInferencer {
 		
 		Distribution dist = new Distribution(X);
 		for (Object o: X.getDomain()) { dist.put(o, 0); }		// Zero all weights
-		int[] N = new int[expectedSizeofDist(X)];				// Create counts array
-		for (int c: N) { c = 0; }								// Zero all counts
 			
 		// V: All vars
 		List <RandomVariable> V = bn.getVariableListTopologicallySorted();
@@ -104,34 +104,60 @@ public class GibbsInferencer {
 			Z.remove(R);} 								// Now Z is the list of non-evidence variables
 		Assignment state = a.copy();					// state = current state
 		
-		for (RandomVariable vi: V) {
-			Domain vDom = vi.getDomain();				// vDomain
-			Distribution vDist = new Distribution(vi);	// vDistribution
+		for (RandomVariable zi: Z) {
+			Domain zDom = zi.getDomain();				// vDomain
+			Distribution zDist = new Distribution(zi);	// vDistribution
 
-
-			for (Object vVal: vDom) {					// For each value in the domain of Yv:
+			for (Object zVal: zDom) {					// For each value in the domain of Yv:
 				Assignment k = state.copy();			// Instantiate 'state'
-				k.put(vi, vVal);							// Add the value
+				k.put(zi, zVal);							// Add the value
 
-				vDist.put(vi, bn.getProb(vi, k));			// Update the distribution
+				zDist.put(zVal, bn.getProb(zi, k));			// Update the distribution
 			}
 
-			Object chosen = getRandSample(vDist, vi);
-			state.set(vi, chosen);						// Update the event
+			Object chosen = getRandSample(zDist, zi);
+			state.set(zi, chosen);						// Update the event
 
 		}
 		
 		for (int n = 0; n < numSamples; n++) {
 			for (RandomVariable zi: Z) {
+				state.put(zi, gibbsSample(zi, state, bn));		// Insert a MBsample into the state
 				
+				System.out.println(dist.toString());
 				
-				
+				dist.put(state.get(zi), (dist.get(state.get(zi)) + 1.0));	// Increment the distribution	
 			}
-			
 		}
 		
-		
+		dist.normalize();
 		return dist;
+	}
+
+	// Markov Blanket Sampling
+	private Object gibbsSample(RandomVariable zi, Assignment state, BayesianNetwork bn) {
+		
+		Domain zDom = zi.getDomain();				// vDomain
+		Distribution zDist = new Distribution(zi);	// vDistribution
+
+		for (Object zVal: zDom) {					// For each value in the domain of Yv:
+			Assignment k = state.copy();			// Instantiate 'state'
+			k.put(zi, zVal);							// Add the value
+			double probability = bn.getProb(zi, k);
+			Set <RandomVariable> ziChildren = bn.getChildren(zi);
+			
+			for (RandomVariable child: ziChildren) {
+				probability *= bn.getProb(child, k);	// Big PI of children * parent prob
+			}
+			
+			zDist.put(zVal, probability);			// Update the distribution
+			zDist.normalize();
+		}
+
+		Object chosen = getRandSample(zDist, zi);
+		state.set(zi, chosen);						// Update the state
+
+		return chosen;
 	}
 
 

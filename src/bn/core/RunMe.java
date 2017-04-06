@@ -36,13 +36,22 @@ public class RunMe {
 		
 		switch (inferencer){
 		case "MyBNInferencer":
-			System.out.println("Inferencer chosen!");
+			System.out.println("Exact chosen!");
 			filename = args[2];		// Name of XML or BIF file for probabilities
 			parameters = Arrays.copyOfRange(args, 3, args.length);
 			// select
 			break;
 		case "MyBNApproxInferencer":
-			System.out.println("Approximate chosen!");
+			System.out.println("Likelihood chosen!");
+			samples = Integer.parseInt(args[2]); // Grab samples, not filename
+
+			System.out.println("Number of samples: " + samples + "."); 
+			filename = args[3];		// Name of XML or BIF file for probabilities
+			parameters = Arrays.copyOfRange(args, 4, args.length);
+			// select
+			break;
+		case "MyBNGibbsInferencer":
+			System.out.println("Gibbs chosen!");
 			samples = Integer.parseInt(args[2]); // Grab samples, not filename
 
 			System.out.println("Number of samples: " + samples + "."); 
@@ -149,6 +158,21 @@ public class RunMe {
 				
 				final long startTime = System.currentTimeMillis();
 				Distribution dist = inf.likelihoodWeighting(BN, query, A, samples);
+				final long endTime = System.currentTimeMillis();
+				
+				System.out.println("Completed " + samples + " samples in " + (endTime-startTime) + " ms.");
+				System.out.format("Average %.3f samples/ms. \n", (double)(samples/(endTime-startTime+0.0)));
+				
+				System.out.println("\n\nProbabilities:" + dist.toString());
+			}
+			
+			if (inferencer.equals("MyBNGibbsInferencer")) {
+				if (samples < 1000) System.out.println("WARNING: Insufficient sample count! May be unreliable.");
+				
+				GibbsInferencer inf = new GibbsInferencer();
+				
+				final long startTime = System.currentTimeMillis();
+				Distribution dist = inf.gibbsAsk(query, A, BN, samples);
 				final long endTime = System.currentTimeMillis();
 				
 				System.out.println("Completed " + samples + " samples in " + (endTime-startTime) + " ms.");
