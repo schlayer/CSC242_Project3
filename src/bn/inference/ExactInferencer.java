@@ -42,9 +42,9 @@ public class ExactInferencer {
 		RandomVariable Y = vars.get(0); // First hidden variable
 		List <RandomVariable> rest = vars.subList(1, vars.size()); // Remaining vars
 		
-		Object yVal = a.get(Y);
+		//Object yVal = a.get(Y);
 		//System.out.println(yVal.toString());
-		if (yVal != null) { // if Y has some value yVal in the assignment:
+		if (a.containsKey(Y)) { // if Y has some value yVal in the assignment:
 			System.out.print("no Y  ");
 			return BN.getProb(Y, a) * exactEnumerateAll(rest, a); // return that probability
 		}
@@ -52,12 +52,13 @@ public class ExactInferencer {
 		double sum = 0;
 		for (Object y: Y.getDomain()) { // For all values y in the domain of Y
 			System.out.print("y = " + y + "  ");
-			a.set(Y, y); // set Y = y in the assignment
+			Assignment e = a.copy();
+			e.set(Y, y); // set Y = y in the assignment
 			
 			
 			try {
-				sum += BN.getProb(Y, a) * exactEnumerateAll(rest, a); // add probability to sum
-			} catch (NoSuchElementException e) {
+				sum += BN.getProb(Y, e) * exactEnumerateAll(rest, e); // add probability to sum
+			} catch (NoSuchElementException E) {
 				//e.printStackTrace();
 				System.out.println("Failed!");
 			}

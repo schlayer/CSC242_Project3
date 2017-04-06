@@ -5,68 +5,87 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import bn.core.Assignment;
+import bn.core.*;
 import bn.core.BayesianNetwork;
 import bn.core.Distribution;
 import bn.core.RandomVariable;
 
 public class LikelihoodInferencer {
 	
-	private Random randomizer = new Random();
+	private static Random rand = new Random();
 	
 	public LikelihoodInferencer() {}
-
-	/**
-	function LIKELIHOOD-WEIGHTING(X, e, bn,N) returns an estimate of P(X|e)
-		inputs: X, the query variable
-				e, observed values for variables E
-				bn, a Bayesian network specifying joint distribution P(X1, . . . , Xn)
-				N, the total number of samples to be generated
-		local variables: W, a vector of weighted counts for each value of X, initially zero
-		for j = 1 to N do
-			x,w <WEIGHTED-SAMPLE(bn, e)
-			W[x ]<W[x] + w where x is the value of X in x
-		return NORMALIZE(W)
-
-	 */ 
 	
+	// Sums all doubles in a list
+	public static double sumList(double[] distValues) {
+		double sum = 0;
+		for (double n: distValues) { sum += n; }
+		
+		return sum;
+	}
 	
-	public static Distribution likelihoodWeighting(BayesianNetwork bn, 
-			RandomVariable X, Assignment a, int numSamples) {
+	public static Object getRandSample(Distribution dist, RandomVariable Y) {
+		
+		double r = rand.nextDouble();
+		
+		Domain yDom = Y.getDomain();
+		int size = yDom.size();
+		
+		double[] distValues = new double[size]; for (double d: distValues) { d = 0; } 	// All zeros
+		double[] samples =  new double[size+1]; samples[0] = 0;							// First is zero
+		
+		int index = 0;
+		for (Object y: yDom) {
+			distValues[index] = dist.get(y);
+			index ++;
+			samples[index] = sumList(distValues);
+			System.out.print(" Sample: " + samples[index]);
+		}
+		
+		
+		
+		return Y;
+		
+	}
+
+	
+	public static Distribution likelihoodWeighting(BayesianNetwork bn, RandomVariable X, Assignment a, int numSamples) {
 		
 		Distribution dist = new Distribution(X);
-		weight W = new weight(X);
 		
 		for (int n = 0; n < numSamples; n++) {
 			// event, weight = Weighted Sample(bn,a)
 			
 			
 		}
-		
 	
 		dist.normalize();
 		return dist;
 		
 	}
 	
-	/*
-	function WEIGHTED-SAMPLE(bn, e) returns an event and a weight
-				w <1; x<an event with n elements initialized from e
-		foreach variable Xi in X1, . . . , Xn do
-			if Xi is an evidence variable with value xi in e
-				then w <w × P(Xi = xi | parents(Xi))
-				else x[i]<a random sample from P(Xi | parents(Xi))
-		return x, w
-	 */
-
-	
 	public static double weightedSample(BayesianNetwork bn, Assignment a, RandomVariable X) {
 		Assignment e = a.copy();
-		List<RandomVariable> Y = bn.getVariableList();
-		for (Object x: X.getDomain()) { // For all values y in the domain of Y
-			System.out.print("x = " + x + "  ");
-			e.set(X, x); // set Y = y in the assignment
+		List<RandomVariable> Y = bn.getVariableListTopologicallySorted();
+		double weight = 1.0;
+		for (RandomVariable Yv: Y) { // For all values y in the domain of Y
+			if (e.containsKey(Yv)) {
+				weight = weight * bn.getProb(Yv, e);
+			} else {
+				double r = Math.random();
+				Domain d = Yv.getDomain();
+				Distribution Ydist = new Distribution(Yv);
+
+				for (Object y: d) {
+					Assignment k = e.copy();
+					k.put(Yv, y);
+
+					Ydist.put(y, bn.getProb(Yv, k));
+				}
+			}
 		}
+		
+		
 		return 0;
 	}
 	
