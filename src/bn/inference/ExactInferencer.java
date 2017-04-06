@@ -22,10 +22,10 @@ public class ExactInferencer {
 
 		for (Object x: X.getDomain()) { // For each x (an Object in the domain of X):
 			a.set(X, x); // a is the assignment where X = x
-			Q.put(x, exactEnumerateAll(bn.getVariableList(), a)); // Add to the distribution
+			Q.put(x, exactEnumerateAll(bn.getVariableListTopologicallySorted(), a)); // Add to the distribution
 		}
 		 
-		this.BN = bn; // ?
+		//this.BN = bn; // ?
 		
 		Q.normalize();
 		return Q;
